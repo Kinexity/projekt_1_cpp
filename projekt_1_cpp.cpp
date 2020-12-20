@@ -60,20 +60,29 @@ int_type gen_and_check(double sequence_sqrt_sum, size_t sequence_length, int_typ
 	int_type possible_sequences_permutations_sum_local = 0;
 	auto places_to_insert_new_sqrt = sequence_length + 1;
 	auto new_sum = a - sequence_sqrt_sum;
-	for (auto sqrt_to_insert_index = sqrt_list_index; sqrt_to_insert_index < length_of_sqrt_list; sqrt_to_insert_index++) {
+	for (auto sqrt_to_insert_index = sqrt_list_index; sqrt_to_insert_index < length_of_sqrt_list - 1; sqrt_to_insert_index++) {
 		auto sqrt_to_insert = sqrt_list[sqrt_to_insert_index];
 		auto max_possible_sqrts_inserted = static_cast<size_t>(std::floor(new_sum / sqrt_to_insert));
 		for (size_t number_of_sqrts_inserted = 1; number_of_sqrts_inserted <= max_possible_sqrts_inserted; number_of_sqrts_inserted++) {
 			int_type possible_ways_to_insert = factorials[number_of_sqrts_inserted + places_to_insert_new_sqrt - 1] / (factorials[number_of_sqrts_inserted] * factorials[places_to_insert_new_sqrt - 1]);
 			auto inserted_elements_sign_variations = powers_of_2[number_of_sqrts_inserted];
 			auto possible_sequence_permutations_local = possible_sequence_permutations * possible_ways_to_insert * inserted_elements_sign_variations;
-			auto new_sequence_sqrt_sum = sequence_sqrt_sum + number_of_sqrts_inserted * sqrt_to_insert;
 			auto new_sqrt_list_index = sqrt_to_insert_index + 1;
-			possible_sequences_permutations_sum_local = possible_sequences_permutations_sum_local + possible_sequence_permutations_local;
-			if (new_sqrt_list_index < length_of_sqrt_list) {
-				auto new_sequence_length = sequence_length + number_of_sqrts_inserted;
-				possible_sequences_permutations_sum_local += gen_and_check(new_sequence_sqrt_sum, new_sequence_length, possible_sequence_permutations_local, new_sqrt_list_index);
-			}
+			possible_sequences_permutations_sum_local += possible_sequence_permutations_local;
+			auto new_sequence_length = sequence_length + number_of_sqrts_inserted;
+			auto new_sequence_sqrt_sum = std::fma(number_of_sqrts_inserted, sqrt_to_insert, sequence_sqrt_sum);
+			possible_sequences_permutations_sum_local += gen_and_check(new_sequence_sqrt_sum, new_sequence_length, possible_sequence_permutations_local, new_sqrt_list_index);
+		}
+	}
+	{ //ostatnie przejście pętli dla sqrt_to_insert_index==length_of_sqrt_list-1 żeby uniknąć instrukcji warunkowej
+		auto sqrt_to_insert_index = length_of_sqrt_list - 1;
+		auto sqrt_to_insert = sqrt_list[sqrt_to_insert_index];
+		auto max_possible_sqrts_inserted = static_cast<size_t>(std::floor(new_sum / sqrt_to_insert));
+		for (size_t number_of_sqrts_inserted = 1; number_of_sqrts_inserted <= max_possible_sqrts_inserted; number_of_sqrts_inserted++) {
+			int_type possible_ways_to_insert = factorials[number_of_sqrts_inserted + places_to_insert_new_sqrt - 1] / (factorials[number_of_sqrts_inserted] * factorials[places_to_insert_new_sqrt - 1]);
+			auto inserted_elements_sign_variations = powers_of_2[number_of_sqrts_inserted];
+			auto possible_sequence_permutations_local = possible_sequence_permutations * possible_ways_to_insert * inserted_elements_sign_variations;
+			possible_sequences_permutations_sum_local += possible_sequence_permutations_local;
 		}
 	}
 	return possible_sequences_permutations_sum_local;
